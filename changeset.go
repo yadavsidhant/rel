@@ -192,7 +192,12 @@ func newChangeset(doc *Document) Changeset {
 }
 
 func initChangesetAssoc(doc *Document, assoc map[string]Changeset, field string) {
-	doc, loaded := doc.Association(field).Document()
+	a := doc.Association(field)
+	if a.IsZero() {
+		return
+	}
+
+	doc, loaded := a.Document()
 	if !loaded {
 		return
 	}
@@ -201,7 +206,12 @@ func initChangesetAssoc(doc *Document, assoc map[string]Changeset, field string)
 }
 
 func initChangesetAssocMany(doc *Document, assoc map[string]map[any]Changeset, field string) {
-	col, loaded := doc.Association(field).Collection()
+	a := doc.Association(field)
+	if a.IsZero() {
+		return
+	}
+
+	col, loaded := a.Collection()
 	if !loaded {
 		return
 	}
@@ -283,10 +293,14 @@ func buildChangesAssoc(out map[string]any, c Changeset, field string) {
 }
 
 func buildChangesAssocMany(out map[string]any, c Changeset, field string) {
+	assoc := c.doc.Association(field)
+	if assoc.IsZero() && len(c.assocMany[field]) == 0 {
+		return
+	}
+
 	var (
 		changes    []map[string]any
 		chs        = c.assocMany[field]
-		assoc      = c.doc.Association(field)
 		col, _     = assoc.Collection()
 		updatedIDs = make(map[any]struct{})
 	)

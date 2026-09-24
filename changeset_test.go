@@ -602,3 +602,28 @@ func TestChangeset_valueChanged_TimePanic(t *testing.T) {
 		"time": pair{now, nil},
 	}, changes)
 }
+
+func TestChangeset_notMutatingNilAssociations(t *testing.T) {
+	type Address struct {
+		ID     int
+		UserID int
+	}
+
+	type UserWithPtr struct {
+		ID        int
+		Address   *Address   `ref:"address_id" fk:"id"`
+		AddressID *int
+		Addresses []*Address `ref:"id" fk:"user_id"`
+	}
+
+	user := UserWithPtr{
+		ID:        1,
+		Address:   nil,
+		Addresses: nil,
+	}
+
+	_ = NewChangeset(&user)
+
+	assert.Nil(t, user.Address)
+	assert.Nil(t, user.Addresses)
+}

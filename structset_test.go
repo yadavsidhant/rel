@@ -312,3 +312,64 @@ func TestStructset_forceCascadeHasMany(t *testing.T) {
 		})
 	}
 }
+
+func TestStructset_setCreatedAtFalse(t *testing.T) {
+	var (
+		user = User{
+			ID:   1,
+			Name: "name",
+		}
+		doc      = NewDocument(&user)
+		mutation = Apply(doc, SetCreatedAt(false), NewStructset(&user, false))
+	)
+
+	assert.True(t, user.CreatedAt.IsZero())
+	assert.NotContains(t, mutation.Mutates, "created_at")
+	assert.Contains(t, mutation.Mutates, "updated_at")
+	assert.Equal(t, Set("updated_at", Now()), mutation.Mutates["updated_at"])
+}
+
+func TestStructset_setUpdatedAtFalse(t *testing.T) {
+	var (
+		user = User{
+			ID:   1,
+			Name: "name",
+		}
+		doc      = NewDocument(&user)
+		mutation = Apply(doc, SetUpdatedAt(false), NewStructset(&user, false))
+	)
+
+	assert.False(t, user.CreatedAt.IsZero())
+	assert.Contains(t, mutation.Mutates, "created_at")
+	assert.NotContains(t, mutation.Mutates, "updated_at")
+}
+
+func TestStructset_setCreatedAtTrue(t *testing.T) {
+	var (
+		user = User{
+			ID:   1,
+			Name: "name",
+		}
+		doc      = NewDocument(&user)
+		mutation = Apply(doc, SetCreatedAt(true), NewStructset(&user, false))
+	)
+
+	assert.False(t, user.CreatedAt.IsZero())
+	assert.Contains(t, mutation.Mutates, "created_at")
+	assert.Contains(t, mutation.Mutates, "updated_at")
+}
+
+func TestStructset_setUpdatedAtTrue(t *testing.T) {
+	var (
+		user = User{
+			ID:   1,
+			Name: "name",
+		}
+		doc      = NewDocument(&user)
+		mutation = Apply(doc, SetUpdatedAt(true), NewStructset(&user, false))
+	)
+
+	assert.False(t, user.CreatedAt.IsZero())
+	assert.Contains(t, mutation.Mutates, "created_at")
+	assert.Contains(t, mutation.Mutates, "updated_at")
+}
